@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>光合成によって二酸化炭素が取り入れられることを確かめるには</title>
+  <style>
+    :root{
+      --bg:#f7f8fc; --card:#ffffff; --ink:#111318; --muted:#4b5563; --accent:#2c5be4; --line:#d9e0ef;
+      --soft:#eef2ff; --soft2:#f4f6ff; --ill:#f1f4fb;
+      --yellow:#ffd93b; --green:#1fbf6a; --blue:#4a8bff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans JP,Helvetica,Arial;background:var(--bg);color:var(--ink)}
+    header{position:sticky;top:0;z-index:10;background:#ffffffcc;border-bottom:1px solid var(--line);backdrop-filter:saturate(120%) blur(6px)}
+    .wrap{max-width:1100px;margin:auto;padding:14px 16px}
+    h1{margin:0;font-size:clamp(18px,2.4vw,26px)}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .toolbar>*{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--ink)}
+    button,select,input,textarea{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:10px}
+    button{cursor:pointer}
+    button.primary{background:linear-gradient(180deg,#4f7dff,#2c5be4);border-color:#2750c8;color:#fff}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px;margin-top:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 4px 14px #0b102005}
+    .card h2{font-size:18px;margin:0 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .grow{flex:1}
+    .illus{position:relative;display:flex;align-items:center;justify-content:center;background:var(--ill);border:1px dashed var(--line);border-radius:12px;padding:6px;height:180px;margin:6px 0}
+    .badges{position:absolute;inset:6px 6px auto auto;display:flex;gap:8px;pointer-events:none}
+    .radio-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:4px 0 2px}
+    textarea{width:100%;min-height:64px;padding:8px;resize:vertical;background:var(--soft2)}
+    .overview{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+    .strip{display:flex;gap:12px;overflow-x:auto;padding:6px 2px}
+    .thumb{min-width:240px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+    .thumb h3{margin:0 0 6px;font-size:15px}
+    .thumb .mini{display:flex;align-items:center;justify-content:center;height:120px;background:var(--ill);border:1px dashed var(--line);border-radius:10px;margin-bottom:6px;position:relative}
+    .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:4px 8px;margin-right:6px}
+    .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+    .chip{background:var(--soft);border:1px solid var(--line);padding:5px 8px;border-radius:999px;font-size:12px}
+    .chip button{background:transparent;border:none;color:#1f4dd8;cursor:pointer;margin-left:6px}
+    .legend{display:flex;gap:8px;align-items:center;margin-left:auto}
+    .dot{width:12px;height:12px;border-radius:50%;border:1px solid #0003;display:inline-block}
+    .dot.yellow{background:var(--yellow)}.dot.green{background:#45d38a}.dot.blue{background:#79a6ff}
+    .compare{margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+    .compare .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+    .box{background:var(--soft2);border:1px dashed var(--line);border-radius:10px;padding:8px}
+    .pair .box h3{margin:0 0 6px;font-size:14px}
+    .pair .mini{height:110px;display:flex;align-items:center;justify-content:center;background:var(--ill);border:1px dashed var(--line);border-radius:8px;margin-bottom:6px;position:relative}
+    .pair .badges{inset:4px 4px auto auto}
+    .diffchips{display:flex;gap:6px;flex-wrap:wrap}
+    .diffchips .chip{background:#eef6ff}
+    table.matrix{width:100%;border-collapse:collapse;margin-top:10px;background:#fff;border:1px solid var(--line);color:var(--ink)}
+    .matrix th,.matrix td{border:1px solid var(--line);padding:8px;text-align:center;font-size:14px}
+    .matrix th{background:#f3f6ff;position:sticky;top:0}
+    .clickable{cursor:pointer}
+    @media print{
+      header,.toolbar{display:none}
+      body{background:#fff;color:#000}
+      .card,.overview,.compare{background:#fff;border-color:#bbb}
+      .illus{border-color:#bbb;background:#fff}
+      .matrix{background:#fff}
+    }
+    label.inline{display:inline-flex;align-items:center;gap:6px}
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>光合成によって二酸化炭素が取り入れられることを確かめるには</h1>
+    <div class="toolbar">
+      <button id="addTube" class="primary">＋ 試験管を追加</button>
+      <button id="reset">すべてリセット</button>
+      <button id="print">印刷 / PDF</button>
+      <div class="legend">
+        <span class="dot yellow"></span>黄（酸性）
+        <span class="dot green"></span>緑（中性）
+        <span class="dot blue"></span>青（アルカリ性）
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="grid" class="grid"></div>
+
+  <section class="overview" id="overview" hidden>
+    <div class="strip" id="strip"></div>
+    <div style="font-size:12px;color:#6b7280">※この横並びをスクショして提出</div>
+  </section>
+
+  <section class="compare" id="compare" hidden>
+    <h2 style="margin:0 0 6px;font-size:16px">2本の試験管を比べて予想</h2>
+    <div class="row">
+      <span>①<select id="cmpA"></select></span>
+      <span>②<select id="cmpB"></select></span>
+      <span class="inline" style="margin-left:auto">
+        結果は
+        <input id="cmpDiff1" type="radio" name="cmpDiff" value="different"><label for="cmpDiff1" class="inline">異なる</label>
+        <input id="cmpDiff2" type="radio" name="cmpDiff" value="same"><label for="cmpDiff2" class="inline">同じ</label>
+        <input id="cmpDiff3" type="radio" name="cmpDiff" value="unknown"><label for="cmpDiff3" class="inline">未定</label>
+      </span>
+    </div>
+
+    <div class="pair">
+      <div class="box" id="boxA">
+        <h3 id="boxAtitle">①</h3>
+        <div class="mini" id="miniA"></div>
+        <div id="tagsA"></div>
+      </div>
+      <div class="box" id="boxB">
+        <h3 id="boxBtitle">②</h3>
+        <div class="mini" id="miniB"></div>
+        <div id="tagsB"></div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div id="diffchips" class="diffchips"></div>
+      <label style="display:block;margin-top:6px">理由メモ
+        <textarea id="cmpWhy" placeholder="この２本を比べるとどんなことが言える？例：結果のちがいは○○によるものだと言える など。"></textarea>
+      </label>
+    </div>
+
+    <h3 style="margin:10px 0 6px;font-size:15px">条件 × 試験管 表（縦＝試験管、横＝条件）</h3>
+    <div id="matrixWrap"></div>
+  </section>
+</main>
+
+<script>
+(()=>{
+  // ===== State (fresh key) =====
+  const STORAGE_KEY = 'btb_planner_v14';
+  const state = { tubes: [], compare:{ a:null, b:null, diff:'unknown', why:'' } };
+
+  // ===== Elements =====
+  const grid = document.getElementById('grid');
+  const overview = document.getElementById('overview');
+  const strip = document.getElementById('strip');
+  const cmpSec = document.getElementById('compare');
+  const cmpA = document.getElementById('cmpA');
+  const cmpB = document.getElementById('cmpB');
+  const matrixWrap = document.getElementById('matrixWrap');
+  const miniA = document.getElementById('miniA');
+  const miniB = document.getElementById('miniB');
+  const tagsA = document.getElementById('tagsA');
+  const tagsB = document.getElementById('tagsB');
+  const boxAtitle = document.getElementById('boxAtitle');
+  const boxBtitle = document.getElementById('boxBtitle');
+  const diffchips = document.getElementById('diffchips');
+  const cmpWhy = document.getElementById('cmpWhy');
+  document.getElementById('addTube').addEventListener('click', ()=>{ addTube(); render(); });
+  document.getElementById('reset').addEventListener('click', ()=>{ localStorage.removeItem(STORAGE_KEY); state.tubes=[]; state.compare={a:null,b:null,diff:'unknown',why:''}; addTube(); render(); });
+  document.getElementById('print').addEventListener('click', ()=>window.print());
+
+  const COLORS = { yellow:'#ffd93b', green:'#45d38a', blue:'#79a6ff' };
+
+  // ===== Init =====
+  load(); if(!state.tubes.length) addTube(); ensureCompareDefaults(); render();
+
+  function uid(){ return 't_' + Math.random().toString(36).slice(2,9); }
+  function tubeName(i){ return '試験管 ' + String.fromCharCode(65+i); }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function load(){
+    try{ const d = JSON.parse(localStorage.getItem(STORAGE_KEY)); if(d?.tubes) state.tubes=d.tubes; if(d?.compare) state.compare=d.compare; }catch(_){}
+    normalize();
+  }
+  function normalize(){
+    state.tubes.forEach(t=>{
+      t.light = !!t.light;
+      t.plant = !!t.plant;
+      if(!['yellow','green','blue'].includes(t.predictedColor)) t.predictedColor='green';
+      if(!Array.isArray(t.conds)) t.conds=[];
+    });
+  }
+
+  function addTube(){
+    state.tubes.push({ id: uid(), title:'', light:true, plant:true, predictedColor:'green', note:'', conds:[] });
+    save();
+  }
+  function removeTube(i){ state.tubes.splice(i,1); save(); }
+
+  function ensureCompareDefaults(){
+    if(!state.tubes.length){ state.compare={a:null,b:null,diff:'unknown',why:''}; return; }
+    const ids = state.tubes.map(t=>t.id);
+    if(!ids.includes(state.compare.a)) state.compare.a = ids[0] || null;
+    if(!ids.includes(state.compare.b)) state.compare.b = ids[1] || ids[0] || null;
+    if(state.compare.a===state.compare.b && ids.length>1) state.compare.b = ids[1];
+  }
+
+  function render(){
+    normalize();
+    ensureCompareDefaults();
+
+    grid.innerHTML='';
+    state.tubes.forEach((t,i)=> grid.appendChild(renderTube(t,i)) );
+    renderOverview();
+    renderCompare();
+    renderMatrix();
+
+    overview.hidden = state.tubes.length===0;
+    cmpSec.hidden = state.tubes.length<2;
+    save();
+  }
+
+  function renderTube(t, i){
+    const card = h('div',{class:'card','data-id':t.id});
+
+    // Unique ids
+    const idLightYes = `light_${t.id}_yes`, idLightNo = `light_${t.id}_no`;
+    const idPlantYes = `plant_${t.id}_yes`, idPlantNo = `plant_${t.id}_no`;
+
+    function setLight(val){ t.light=val; render(); }
+    function setPlant(val){ t.plant=val; render(); }
+    function setPred(k){ t.predictedColor=k; render(); }
+
+    card.append(
+      h('h2',{}, 
+        h('span',{}, tubeName(i)), 
+        h('div',{class:'row'}, 
+          h('input',{class:'grow',placeholder:'名前（任意）',value:t.title,onchange:(e)=>{t.title=e.target.value; save();}}),
+          h('button',{onclick:()=>{ removeTube(i); render(); }},'×')
+        )
+      ),
+
+      // Toggles
+      h('div',{class:'row'},
+        h('span',{}, 
+          h('b',{},'光：'),
+          h('input',{type:'radio',id:idLightYes,name:`light_${t.id}`,checked:t.light,onclick:()=>setLight(true)}),
+          h('label',{for:idLightYes,class:'inline'},'あり'),
+          h('input',{type:'radio',id:idLightNo,name:`light_${t.id}`,checked:!t.light,onclick:()=>setLight(false)}),
+          h('label',{for:idLightNo,class:'inline'},'なし')
+        ),
+        h('span',{}, 
+          h('b',{},'植物：'),
+          h('input',{type:'radio',id:idPlantYes,name:`plant_${t.id}`,checked:t.plant,onclick:()=>setPlant(true)}),
+          h('label',{for:idPlantYes,class:'inline'},'あり'),
+          h('input',{type:'radio',id:idPlantNo,name:`plant_${t.id}`,checked:!t.plant,onclick:()=>setPlant(false)}),
+          h('label',{for:idPlantNo,class:'inline'},'なし')
+        )
+      ),
+
+      // Illustration
+      h('div',{class:'illus'},
+        drawTubeSVG(t.predictedColor||'green', t.plant, t.id),
+        h('div',{class:'badges'}, drawSun(t.light), drawLeafBadge(t.plant) )
+      ),
+
+      // Free conditions
+      h('div',{}, 
+        h('div',{},'その他の条件（自由記述）'),
+        (function(){
+          const r = h('div',{class:'row'});
+          const inp = h('input',{class:'grow',placeholder:'例：温度を同じにする、密閉する など'});
+          const btn = h('button',{onclick:()=>{ const v=(inp.value||'').trim(); if(!v) return; if(!t.conds.includes(v)) t.conds.push(v); inp.value=''; render(); }},'追加');
+          r.append(inp,btn);
+          return r;
+        })(),
+        h('div',{class:'chips'}, ...(t.conds||[]).map((c,ci)=> h('span',{class:'chip'}, c, h('button',{onclick:()=>{t.conds.splice(ci,1); render();}},'×')) ))
+      ),
+
+      // Prediction
+      h('div',{}, h('b',{},'30分後のBTB色 予想'),
+        h('div',{class:'radio-row'},
+          ...['yellow','green','blue'].map(k=>{
+            const idPred = `pred_${t.id}_${k}`;
+            const lbl={'yellow':'黄（酸性）','green':'緑（中性）','blue':'青（アルカリ性)'}[k];
+            return h('span',{}, 
+              h('input',{type:'radio',id:idPred,name:`pred_${t.id}`,checked:t.predictedColor===k,onclick:()=>setPred(k)}),
+              h('label',{for:idPred,class:'inline'}, ' '+lbl)
+            );
+          })
+        )
+      ),
+
+      // Reason memo (tube)
+      h('label',{}, '理由メモ',
+        h('textarea',{placeholder:'※BTB溶液がその色になると思った理由と記述して。',onchange:(e)=>{t.note=e.target.value; save();}}, t.note||'')
+      )
+    );
+
+    return card;
+  }
+
+  // Overview strip
+  function renderOverview(){
+    strip.innerHTML='';
+    state.tubes.forEach((t,i)=>{
+      const th = h('div',{class:'thumb'},
+        h('h3',{}, (t.title?.trim()||tubeName(i))),
+        h('div',{class:'mini'}, drawTubeSVG(t.predictedColor||'green', t.plant, t.id),
+          h('div',{class:'badges'}, drawSun(t.light), drawLeafBadge(t.plant))
+        ),
+        h('div',{}, 
+          h('span',{class:'badge'},'光：'+(t.light?'あり':'なし')),
+          h('span',{class:'badge'},'植物：'+(t.plant?'あり':'なし')),
+          h('span',{class:'badge'},'予想：'+({'yellow':'黄（酸性）','green':'緑（中性）','blue':'青（アルカリ性）'}[t.predictedColor]))
+        ),
+        (t.conds?.length? h('div',{style:"font-size:12px;color:#334155;margin-top:4px"}, '条件：'+t.conds.join('、')): null)
+      );
+      strip.appendChild(th);
+    });
+    overview.hidden = state.tubes.length===0;
+  }
+
+  // ---- Compare UI ----
+  function renderCompare(){
+    // build selects
+    [cmpA, cmpB].forEach(sel=> sel.innerHTML='');
+    state.tubes.forEach((t,i)=>{
+      const opt = document.createElement('option'); opt.value=t.id; opt.textContent=(t.title?.trim()||tubeName(i));
+      cmpA.appendChild(opt.cloneNode(true)); cmpB.appendChild(opt);
+    });
+    if(state.compare.a) cmpA.value = state.compare.a;
+    if(state.compare.b) cmpB.value = state.compare.b;
+    cmpA.onchange = ()=>{ state.compare.a = cmpA.value; save(); updatePairBoxes(); };
+    cmpB.onchange = ()=>{ state.compare.b = cmpB.value; save(); updatePairBoxes(); };
+
+    // diff radio
+    const r1 = document.getElementById('cmpDiff1');
+    const r2 = document.getElementById('cmpDiff2');
+    const r3 = document.getElementById('cmpDiff3');
+    r1.checked = state.compare.diff==='different';
+    r2.checked = state.compare.diff==='same';
+    r3.checked = state.compare.diff==='unknown';
+    r1.onclick = ()=>{ state.compare.diff='different'; save(); };
+    r2.onclick = ()=>{ state.compare.diff='same'; save(); };
+    r3.onclick = ()=>{ state.compare.diff='unknown'; save(); };
+
+    // why
+    cmpWhy.value = state.compare.why||'';
+    cmpWhy.onchange = (e)=>{ state.compare.why=e.target.value; save(); };
+
+    // build pair boxes
+    updatePairBoxes();
+  }
+
+  function tubeById(id){ return state.tubes.find(t=>t.id===id); }
+
+  function updatePairBoxes(){
+    const a = tubeById(state.compare.a);
+    const b = tubeById(state.compare.b);
+    if(!a || !b){ diffchips.innerHTML=''; miniA.innerHTML=''; miniB.innerHTML=''; tagsA.innerHTML=''; tagsB.innerHTML=''; return; }
+
+    // titles
+    const ia = state.tubes.indexOf(a), ib = state.tubes.indexOf(b);
+    boxAtitle.textContent = (a.title?.trim()||tubeName(ia));
+    boxBtitle.textContent = (b.title?.trim()||tubeName(ib));
+
+    // minis
+    miniA.innerHTML=''; miniB.innerHTML='';
+    miniA.appendChild(drawTubeSVG(a.predictedColor||'green', a.plant, 'cmpA_'+a.id));
+    miniA.appendChild((()=>{ const d=document.createElement('div'); d.className='badges'; d.appendChild(drawSun(a.light)); d.appendChild(drawLeafBadge(a.plant)); return d; })());
+    miniB.appendChild(drawTubeSVG(b.predictedColor||'green', b.plant, 'cmpB_'+b.id));
+    miniB.appendChild((()=>{ const d=document.createElement('div'); d.className='badges'; d.appendChild(drawSun(b.light)); d.appendChild(drawLeafBadge(b.plant)); return d; })());
+
+    // tags under each
+    tagsA.innerHTML = '';
+    tagsB.innerHTML = '';
+    tagsA.appendChild(tag('光：'+(a.light?'あり':'なし')));
+    tagsA.appendChild(tag('植物：'+(a.plant?'あり':'なし')));
+    tagsA.appendChild(tag('予想：'+({'yellow':'黄（酸性）','green':'緑（中性）','blue':'青（アルカリ性）'}[a.predictedColor])));
+    if(a.conds?.length) tagsA.appendChild(tag('条件：'+a.conds.join('、')));
+
+    tagsB.appendChild(tag('光：'+(b.light?'あり':'なし')));
+    tagsB.appendChild(tag('植物：'+(b.plant?'あり':'なし')));
+    tagsB.appendChild(tag('予想：'+({'yellow':'黄（酸性）','green':'緑（中性）','blue':'青（アルカリ性）'}[b.predictedColor])));
+    if(b.conds?.length) tagsB.appendChild(tag('条件：'+b.conds.join('、')));
+
+    // diffs
+    const diffs = computeDiff(a,b);
+    diffchips.innerHTML='';
+    if(!diffs.length){
+      diffchips.appendChild(tag('（違いなし）'));
+    }else{
+      diffs.forEach(d=> diffchips.appendChild(chip(d)) );
+    }
+  }
+
+  function tag(text){ const s=document.createElement('span'); s.className='badge'; s.textContent=text; return s; }
+  function chip(text){ const s=document.createElement('span'); s.className='chip'; s.textContent='変えた条件：'+text; return s; }
+
+  function computeDiff(a,b){
+    const out = [];
+    if(a.light!==b.light) out.push('光');
+    if(a.plant!==b.plant) out.push('植物');
+    const all = new Set([...(a.conds||[]), ...(b.conds||[])]);
+    all.forEach(name=>{
+      const hasA = (a.conds||[]).includes(name);
+      const hasB = (b.conds||[]).includes(name);
+      if(hasA!==hasB) out.push(name);
+    });
+    return out;
+  }
+
+  // ---- Matrix (縦=試験管, 横=条件) ----
+  function allConditionNames(){
+    const set = new Set(['光','植物']);
+    state.tubes.forEach(t=> (t.conds||[]).forEach(c=> set.add(c)) );
+    return Array.from(set);
+  }
+  function renderMatrix(){
+    matrixWrap.innerHTML='';
+    if(!state.tubes.length) return;
+    const conds = allConditionNames(); // columns
+    const table = h('table',{class:'matrix',role:'table'});
+    const thead = h('thead',{});
+    const trH = h('tr',{});
+    trH.append(h('th',{},'試験管＼条件'));
+    conds.forEach(name=> trH.append(h('th',{}, name)));
+    thead.append(trH);
+    const tbody = h('tbody',{});
+
+    state.tubes.forEach((t,i)=>{
+      const tr = h('tr',{});
+      tr.append(h('th',{}, (t.title?.trim()||tubeName(i))));
+      conds.forEach(name=>{
+        let txt='';
+        if(name==='光') txt = t.light?'あり':'なし';
+        else if(name==='植物') txt = t.plant?'あり':'なし';
+        else txt = (t.conds||[]).includes(name)?'○':'―';
+        const td = h('td',{class:'clickable', onclick: ()=>{
+          if(name==='光'){ t.light=!t.light; }
+          else if(name==='植物'){ t.plant=!t.plant; }
+          else{
+            const idx = (t.conds||[]).indexOf(name);
+            if(idx>=0) t.conds.splice(idx,1); else t.conds.push(name);
+          }
+          render();
+        }}, txt);
+        tr.append(td);
+      });
+      tbody.append(tr);
+    });
+
+    table.append(thead, tbody);
+    matrixWrap.append(table);
+  }
+
+  // ==== SVG helpers ====
+  function drawTubeSVG(colorKey, plantOn, idSuffix){
+    const c = COLORS[colorKey] || COLORS.green;
+    const svgNS='http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS,'svg');
+    svg.setAttribute('viewBox','0 0 240 170'); svg.setAttribute('width','240'); svg.setAttribute('height','170');
+
+    const defs=document.createElementNS(svgNS,'defs');
+    const gGlass=document.createElementNS(svgNS,'linearGradient'); gGlass.id=`gGlass_${idSuffix}`; gGlass.setAttribute('x1','0'); gGlass.setAttribute('x2','0'); gGlass.setAttribute('y1','0'); gGlass.setAttribute('y2','1');
+    gGlass.append(stop('0%','#bcd1ff'), stop('60%','#d8e4ff'), stop('100%','#b6c8f0'));
+    const gLiquid=document.createElementNS(svgNS,'linearGradient'); gLiquid.id=`gLiquid_${idSuffix}`; gLiquid.setAttribute('x1','0'); gLiquid.setAttribute('x2','0'); gLiquid.setAttribute('y1','0'); gLiquid.setAttribute('y2','1');
+    gLiquid.append(stop('0%',c), stop('100%', c+'cc'));
+    const clip=document.createElementNS(svgNS,'clipPath'); clip.id=`clipInside_${idSuffix}`;
+    const inside=document.createElementNS(svgNS,'path'); inside.setAttribute('d','M100 18 C98 18, 96 20, 96 23 L96 122 C96 134, 106 145, 120 145 C134 145, 144 134, 144 122 L144 23 C144 20, 142 18, 140 18 Z');
+    clip.appendChild(inside); defs.append(gGlass,gLiquid,clip); svg.appendChild(defs);
+
+    const rim = el('ellipse',{cx:120,cy:22,rx:26,ry:8,fill:'#a7b8e6',stroke:'#7f9bd9','stroke-width':2});
+    const glass = el('path',{d:'M94 22 C94 18, 98 15, 104 15 L136 15 C142 15, 146 18, 146 22 L146 122 C146 138, 131 154, 120 154 C109 154, 94 138, 94 122 Z', fill:`url(#gGlass_${idSuffix})`, stroke:'#7f9bd9','stroke-width':2});
+    const liquid = el('path',{d:'M96 86 C106 82, 134 82, 144 86 L144 122 C144 134, 134 145, 120 145 C106 145, 96 134, 96 122 Z', fill:`url(#gLiquid_${idSuffix})`, opacity:0.95});
+    const glare = el('path',{d:'M104 24 L110 24 L110 130 C107 128, 105 124, 104 120 Z', fill:'#ffffff66'});
+
+    svg.append(rim, glass, liquid);
+    if(plantOn){
+      const leaf = el('path',{d:'M120 110 C108 108, 104 118, 110 128 C116 138, 132 138, 136 128 C140 120, 134 108, 120 110 Z', fill:'#2faf67', 'clip-path':`url(#clipInside_${idSuffix})`});
+      const vein = el('path',{d:'M118 114 L128 134', stroke:'#1d6b46', 'stroke-width':2, fill:'none', 'clip-path':`url(#clipInside_${idSuffix})`});
+      svg.append(leaf, vein);
+    }
+    svg.append(glare);
+    return svg;
+  }
+  function stop(o,c){ const s=document.createElementNS('http://www.w3.org/2000/svg','stop'); s.setAttribute('offset',o); s.setAttribute('stop-color',c); return s; }
+  function el(tag,attrs){
+    const n=document.createElementNS('http://www.w3.org/2000/svg',tag);
+    for(const k in attrs){ n.setAttribute(k, attrs[k]); }
+    return n;
+  }
+
+  function drawSun(on){
+    const svgNS='http://www.w3.org/2000/svg', svg=document.createElementNS(svgNS,'svg');
+    svg.setAttribute('viewBox','0 0 40 40'); svg.setAttribute('width','40'); svg.setAttribute('height','40');
+    const g=document.createElementNS(svgNS,'g');
+    const circle=document.createElementNS(svgNS,'circle'); circle.setAttribute('cx','20'); circle.setAttribute('cy','20'); circle.setAttribute('r','7'); circle.setAttribute('fill', on?'#ffd93b':'#cbd5e1'); g.appendChild(circle);
+    for(let i=0;i<8;i++){ const line=document.createElementNS(svgNS,'rect'); line.setAttribute('x','19'); line.setAttribute('y','2'); line.setAttribute('width','2'); line.setAttribute('height','8'); line.setAttribute('fill', on?'#ffd93b':'#cbd5e1'); line.setAttribute('transform','rotate('+(45*i)+' 20 20)'); g.appendChild(line); }
+    svg.appendChild(g);
+    if(!on){ const a=line(6,6,34,34), b=line(34,6,6,34); svg.append(a,b); }
+    return svg;
+    function line(x1,y1,x2,y2){ const L=document.createElementNS(svgNS,'line'); L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2);L.setAttribute('stroke','#ef4444');L.setAttribute('stroke-width','4'); return L; }
+  }
+  function drawLeafBadge(on){
+    const svgNS='http://www.w3.org/2000/svg', svg=document.createElementNS(svgNS,'svg');
+    svg.setAttribute('viewBox','0 0 40 40'); svg.setAttribute('width','40'); svg.setAttribute('height','40');
+    const path=document.createElementNS(svgNS,'path'); path.setAttribute('d','M20 6 C10 8, 6 18, 10 26 C14 34, 26 34, 30 26 C34 18, 30 8, 20 6 Z'); path.setAttribute('fill', on?'#4cd37b':'#cbd5e1');
+    const vein=document.createElementNS(svgNS,'path'); vein.setAttribute('d','M20 10 L20 30'); vein.setAttribute('stroke', on?'#1f6f4a':'#94a3b8'); vein.setAttribute('stroke-width','2'); vein.setAttribute('fill','none');
+    svg.append(path,vein);
+    if(!on){ const a=line(6,6,34,34), b=line(34,6,6,34); svg.append(a,b); }
+    return svg;
+    function line(x1,y1,x2,y2){ const L=document.createElementNS(svgNS,'line'); L.setAttribute('x1',x1);L.setAttribute('y1',y1);L.setAttribute('x2',x2);L.setAttribute('y2',y2); L.setAttribute('stroke','#ef4444');L.setAttribute('stroke-width','4'); return L; }
+  }
+
+  // DOM helper
+  function h(tag,attrs,...kids){
+    const el=document.createElement(tag);
+    for(const k in (attrs||{})){
+      const v = attrs[k];
+      if(k==='style'){ el.setAttribute('style',v); }
+      else if(k==='class'){ el.className = v; }
+      else if(k==='checked'){ el.checked = !!v; }
+      else if(k==='value' && (tag==='input'||tag==='textarea'||tag==='select')){ el.value = v; }
+      else if(k.startsWith('on')){ el[k]=v; }
+      else { el.setAttribute(k,v); }
+    }
+    kids.flat().forEach(c=>{ if(c==null) return; if(typeof c==='string'||typeof c==='number') el.appendChild(document.createTextNode(c)); else el.appendChild(c); });
+    return el;
+  }
+})();</script>
+</body>
+</html>
